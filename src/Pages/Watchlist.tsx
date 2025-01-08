@@ -1,18 +1,39 @@
 import React, { useState, useEffect } from "react";
-import api from "../api";
+import WatchlistService from "../services/watchlist.service";
+
+const watchlistService = new WatchlistService();
 
 const Watchlist = () => {
-  const [watchlist, setWatchlist] = useState(api.getWatchlist());
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRemoveFromWatchlist = (movieId: number) => {
-    api.removeMovieFromWatchlist(movieId);
-
-    setWatchlist(watchlist.filter((movie) => movie.id !== movieId));
+  const handleRemoveFromWatchlist = async (movieId: number) => {
+    try {
+      await watchlistService.removeMovieFromWatchlist(movieId);
+      setWatchlist(watchlist.filter((movie) => movie.id !== movieId));
+    } catch (err) {
+      setError("Failed to remove movie from watchlist.");
+    }
   };
 
   useEffect(() => {
-    setWatchlist(api.getWatchlist());
+    const fetchWatchlist = async () => {
+      try {
+        const movies = await watchlistService.getWatchlist();
+        setWatchlist(movies);
+      } catch (err) {
+        setError("Failed to fetch watchlist.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWatchlist();
   }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="container mx-auto p-4">

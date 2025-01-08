@@ -1,67 +1,52 @@
 import { Search, SlidersHorizontal, Star } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
 
+interface Movie {
+  id: number;
+  title: string;
+  vote_average: number; // This will be used as rating
+  backdrop_path: string | null;
+  release_date: string;
+  genre: string[];
+  year: number; // Add this line
+}
+
 const MovieList = () => {
+  const [movies, setMovies] = useState<Movie[]>([]); // State to hold fetched movies
+  const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search");
   const [genreFilter, setGenreFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState({ min: 0, max: 10 });
+const [actorFilter, setActorFilter] = useState("");
+const [error, setError] = useState<string | null>(null);
 
-  const Movies = [
-    {
-      id: 1,
-      title: "Dune: Part Two",
-      rating: 8.8,
-      image:
-        "https://images.unsplash.com/photo-1534809027769-b00d750a6bac?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Adventure", "Sci-Fi"],
-    },
-    {
-      id: 2,
-      title: "Poor Things",
-      rating: 8.4,
-      image:
-        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Comedy", "Drama", "Romance"],
-    },
-    {
-      id: 3,
-      title: "Oppenheimer",
-      rating: 8.9,
-      image:
-        "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Biography", "Drama", "History"],
-    },
-    {
-      id: 4,
-      title: "The Batman",
-      rating: 8.5,
-      image:
-        "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Crime", "Drama"],
-    },
-    {
-      id: 5,
-      title: "Killers of the Flower Moon",
-      rating: 8.7,
-      image:
-        "https://images.unsplash.com/photo-1533928298208-27ff66555d8d?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Crime", "Drama", "History"],
-    },
-  ];
+  const API_KEY = '859afbb4b98e3b467da9c99ac390e950';
+  const MOVIE_URL = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`;
 
-  const filteredMovies = Movies.filter((movie) => {
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const response = await axios.get(MOVIE_URL);
+        setMovies(response.data.results);
+      } catch (err) {
+        setError('Failed to fetch movies');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  const filteredMovies = movies.filter((movie: Movie) => {
     const genreMatch = genreFilter === "" || movie.genre.includes(genreFilter);
     const yearMatch = yearFilter === "" || movie.year === parseInt(yearFilter);
     const ratingMatch =
-      movie.rating >= ratingFilter.min && movie.rating <= ratingFilter.max;
+      movie.vote_average >= ratingFilter.min && movie.vote_average <= ratingFilter.max;
     return genreMatch && yearMatch && ratingMatch;
   });
 
@@ -118,7 +103,7 @@ const MovieList = () => {
             </div>
 
             <div>
-              <label className="block mb-2 text-gray-700 dark:text-gray-300">Rating Range</label>
+<label className="block mb-2 text-gray-700 dark:text-gray-300">Actor</label>
               <div className="flex gap-4">
                 <input
                   type="number"
@@ -147,16 +132,16 @@ const MovieList = () => {
               key={movie.id}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
             >
-              <img src={movie.image} alt={movie.title} className="w-full h-48 object-cover" />
+              <img src={movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : ''} alt={movie.title} className="w-full h-48 object-cover" />
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {movie.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">Rating: {movie.rating}</p>
+                <p className="text-gray-600 dark:text-gray-400">Rating: {movie.vote_average}</p>
                 <p className="text-gray-600 dark:text-gray-400">Year: {movie.year}</p>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Genre: {movie.genre.join(", ")}
-                </p>
+<p className="text-gray-600 dark:text-gray-400">
+  Genre: {Array.isArray(movie.genre) ? movie.genre.join(", ") : "N/A"}
+</p>
                 <Link
                   to={`/movies/${movie.id}`}
                   className="mt-4 inline-block text-indigo-500 hover:text-indigo-600"

@@ -1,41 +1,30 @@
 import { Star, Trophy } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { motion } from "framer-motion";
 import { div } from "framer-motion/client";
 import { Link } from "react-router-dom";
 const Toprated = () => {
-  const movies = [
-    {
-      id: 1,
-      title: "The Shawshank Redemption",
-      rating: 9.3,
-      image:
-        "https://images.unsplash.com/photo-1534809027769-b00d750a6bac?auto=format&fit=crop&w=800&q=80",
-      year: 1994,
-      votes: "2.8M",
-      rank: 1,
-    },
-    {
-      id: 2,
-      title: "The Godfather",
-      rating: 9.2,
-      image:
-        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
-      year: 1972,
-      votes: "2.1M",
-      rank: 2,
-    },
-    {
-      id: 3,
-      title: "The Dark Knight",
-      rating: 9.0,
-      image:
-        "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=800&q=80",
-      year: 2008,
-      votes: "2.7M",
-      rank: 3,
-    },
-  ];
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTopRatedMovies = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.themoviedb.org/3/movie/top_rated?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US&page=1`
+        );
+        setMovies(response.data.results);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopRatedMovies();
+  }, []);
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div

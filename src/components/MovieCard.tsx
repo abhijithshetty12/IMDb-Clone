@@ -1,7 +1,11 @@
 import { Star } from "lucide-react";
 import React from "react";
 
-const MovieCard = ({ title, rating, image, year, genre }) => {
+const MovieCard = ({ title, vote_average, backdrop_path, release_date, genre_ids }) => {
+  const image = `https://image.tmdb.org/t/p/original${backdrop_path}`;
+  const year = release_date ? new Date(release_date).getFullYear() : 'N/A';
+  const rating = vote_average ? vote_average.toFixed(1) : 'N/A';
+  const genre = genre_ids; // Assuming genre_ids will be mapped to names in the parent component
   return (
     <div className="bg-zinc-900/50 rounded-xl overflow-hidden movie-card-hover backdrop-blur-sm">
       <div className="relative aspect-[2/3]">

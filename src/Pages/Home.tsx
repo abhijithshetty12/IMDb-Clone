@@ -1,78 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Hero from "../components/Hero.tsx";
 import { Award, Clock, Star, TrendingUp, Bookmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import MovieCarousel from "../components/MovieCarousel.tsx";
 
 const Home = () => {
-  const trendingMovies = [
-    {
-      id: 1,
-      title: "Dune: Part Two",
-      rating: 8.8,
-      image:
-        "https://images.unsplash.com/photo-1534809027769-b00d750a6bac?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Adventure", "Sci-Fi"],
-    },
-    {
-      id: 2,
-      title: "Poor Things",
-      rating: 8.4,
-      image:
-        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Comedy", "Drama", "Romance"],
-    },
-    {
-      id: 3,
-      title: "Oppenheimer",
-      rating: 8.9,
-      image:
-        "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Biography", "Drama", "History"],
-    },
-    {
-      id: 4,
-      title: "The Batman",
-      rating: 8.5,
-      image:
-        "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Crime", "Drama"],
-    },
-    {
-      id: 5,
-      title: "Killers of the Flower Moon",
-      rating: 8.7,
-      image:
-        "https://images.unsplash.com/photo-1533928298208-27ff66555d8d?auto=format&fit=crop&w=800&q=80",
-      year: 2023,
-      genre: ["Crime", "Drama", "History"],
-    },
-  ];
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const upcomingMovies = [
-    {
-      id: 6,
-      title: "Deadpool 3",
-      rating: 9.1,
-      image:
-        "https://images.unsplash.com/photo-1535016120720-40c646be5580?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Comedy", "Adventure"],
-    },
-    {
-      id: 8,
-      title: "Kingdom of the Planet of the Apes",
-      rating: 8.3,
-      image:
-        "https://images.unsplash.com/photo-1533973860717-d49dfd14cf64?auto=format&fit=crop&w=800&q=80",
-      year: 2024,
-      genre: ["Action", "Adventure", "Drama"],
-    },
-  ];
+  const API_KEY = '859afbb4b98e3b467da9c99ac390e950';
+  const TRENDING_URL = `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`;
+  const UPCOMING_URL = `https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}`;
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const trendingResponse = await axios.get(TRENDING_URL);
+        const upcomingResponse = await axios.get(UPCOMING_URL);
+        setTrendingMovies(trendingResponse.data.results);
+        setUpcomingMovies(upcomingResponse.data.results);
+      } catch (err) {
+        setError('Failed to fetch movies');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
 
   return (
     <div>

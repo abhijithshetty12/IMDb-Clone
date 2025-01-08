@@ -1,51 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Play, Star, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
-const featuredMovies = [
-  {
-    id: 1,
-    title: "Dune: Part Two",
-    rating: 8.8,
-    releaseDate: "March 1, 2024",
-    description:
-      "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he must prevent a terrible future only he can foresee.",
-    image:
-      "https://images.unsplash.com/photo-1534809027769-b00d750a6bac?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    id: 2,
-    title: "Oppenheimer",
-    rating: 8.9,
-    releaseDate: "July 21, 2023",
-    description:
-      "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb. A gripping tale of genius, conscience, and the price of scientific progress.",
-    image:
-      "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=2000&q=80",
-  },
-];
+interface Movie {
+  backdrop_path: string | null;
+  vote_average: number | null;
+  release_date: string | null;
+  title: string;
+  overview: string | null;
+  id: number;
+}
 
 const Hero = () => {
-  const [currentMovie, setCurrentMovie] = React.useState(0);
+  const [currentMovie, setCurrentMovie] = useState(0);
+  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
+  const API_KEY = '859afbb4b98e3b467da9c99ac390e950';
+  const TRENDING_URL = `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const fetchTrendingMovies = async () => {
+      try {
+        const response = await axios.get(TRENDING_URL);
+        setTrendingMovies(response.data.results);
+      } catch (error) {
+        console.error("Failed to fetch trending movies", error);
+      }
+    };
+
+    fetchTrendingMovies();
     const timer = setInterval(() => {
-      setCurrentMovie((prev) => (prev + 1) % featuredMovies.length);
+      setCurrentMovie((prev) => (prev + 1) % trendingMovies.length);
     }, 8000);
     return () => clearInterval(timer);
-  }, []);
+  }, [trendingMovies.length]);
 
-  const movie = featuredMovies[currentMovie];
+  const movie: Movie | undefined = trendingMovies[currentMovie];
 
   return (
     <div className="relative h-[90vh] bg-gradient-to-b from-transparent to-black">
       <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 gradient-mask"
         style={{
-          backgroundImage: `url('${movie.image}')`,
+          backgroundImage: `url('${movie?.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : ''}')`,
         }}
       >
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-black/30" /> {/* Removed backdrop-blur class */}
       </div>
 
       <div className="relative container mx-auto px-4 h-full flex items-center">
@@ -54,30 +54,30 @@ const Hero = () => {
             <div className="flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full">
               <Star className="w-5 h-5 text-yellow-500 fill-current" />
               <span className="text-yellow-500 font-semibold">
-                {movie.rating} Rating
+                {movie?.vote_average} Rating
               </span>
             </div>
             <div className="flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full">
               <Calendar className="w-5 h-5 text-zinc-400" />
-              <span className="text-zinc-300">{movie.releaseDate}</span>
+              <span className="text-zinc-300">{movie?.release_date}</span>
             </div>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold mb-4 text-glow">
-            {movie.title}
+            {movie?.title}
           </h1>
           <p className="text-zinc-300 text-lg mb-8 line-clamp-3 max-w-xl">
-            {movie.description}
+            {movie?.overview}
           </p>
           <div className="flex items-center gap-4">
             <Link
-              to={`/movie/${movie.id}`}
+              to={`/movie/${movie?.id}`}
               className="bg-yellow-500 text-black px-8 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-yellow-400 transition-all hover:scale-105 duration-300"
             >
               <Play className="w-5 h-5" />
               Watch Trailer
             </Link>
             <Link
-              to={`/movie/${movie.id}`}
+              to={`/movie/${movie?.id}`}
               className="bg-zinc-900/80 backdrop-blur-md text-white px-8 py-3 rounded-xl font-semibold hover:bg-zinc-800 transition-all hover:scale-105 duration-300"
             >
               More Info
@@ -86,7 +86,7 @@ const Hero = () => {
         </div>
 
         <div className="absolute bottom-8 right-4 flex gap-2">
-          {featuredMovies.map((_, index) => (
+          {trendingMovies.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentMovie(index)}
